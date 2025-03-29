@@ -1,18 +1,18 @@
 from functools import wraps
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, send_file
 from flask_jwt_extended import get_jwt_identity, jwt_required
+import os
+from datetime import datetime
 
-from app import cache, db
+from extensions import cache, db
 from models import Chapter, Question, Quiz, Subject, User, QuizAttempt, Score
+from jobs.tasks import export_user_quiz_statistics, export_quiz_statistics
 
 # Define Blueprint
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
 ### 1️⃣ Admin Role Checker Decorator ###
-
-
-
 def admin_required(fn):
     @wraps(fn)
     @jwt_required()
@@ -125,6 +125,7 @@ def update_user(user_id):
 
 @admin_bp.route("/users", methods=["GET"])
 @admin_required
+@cache.cached(timeout=600, key_prefix='admin_all_users')
 def get_users():
     users = User.query.all()
     return jsonify([{"id": user.id, "email": user.email, "name": user.full_name, "role": user.role} for user in users]), 200
@@ -162,7 +163,7 @@ def create_subject():
 # ➤ Get All Subjects
 @admin_bp.route("/subjects", methods=["GET"])
 @admin_required
-@cache.cached(timeout=3600, key_prefix='admin_subjects')  # Cache for 1 hour
+@cache.cached(timeout=300, key_prefix='admin_subjects')  # Cache for 5 minutes
 def get_subjects():
     subjects = Subject.query.all()
     return jsonify([{"id": s.id, "name": s.name, "description": s.description} for s in subjects]), 200
@@ -443,7 +444,7 @@ def delete_quiz(quiz_id):
 # ➤ Get User Quiz Attempts for Admin
 @admin_bp.route("/users/<int:user_id>/attempts", methods=["GET"])
 @admin_required
-@cache.cached(timeout=300, key_prefix=lambda: f'admin_user_attempts_{request.view_args["user_id"]}')  # Cache for 5 minutes
+@cache.memoize(timeout=30)
 def get_user_attempts(user_id):
     user = User.query.get(user_id)
     if not user:
@@ -541,3 +542,122 @@ def search_quizzes():
         })
 
     return jsonify(result), 200
+
+### Export Endpoints ###
+
+@admin_bp.route("/exports/users/trigger", methods=["POST"])
+@admin_required
+def trigger_user_export():
+    """Trigger an asynchronous task to export user statistics to CSV"""
+    try:
+        # Launch the export task
+        task = export_user_quiz_statistics.delay()
+        
+        return jsonify({
+            "message": "User statistics export task started",
+            "task_id": task.id,
+            "status": "PENDING"
+        }), 202
+    except Exception as e:
+        return jsonify({
+            "error": f"Failed to start export task: {str(e)}"
+        }), 500
+
+@admin_bp.route("/exports/quizzes/trigger", methods=["POST"])
+@admin_required
+def trigger_quiz_export():
+    """Trigger an asynchronous task to export quiz statistics to CSV"""
+    try:
+        # Launch the export task
+        task = export_quiz_statistics.delay()
+        
+        return jsonify({
+            "message": "Quiz statistics export task started",
+            "task_id": task.id,
+            "status": "PENDING"
+        }), 202
+    except Exception as e:
+        return jsonify({
+            "error": f"Failed to start export task: {str(e)}"
+        }), 500
+
+@admin_bp.route("/exports/status/<task_id>", methods=["GET"])
+@admin_required
+def get_export_status(task_id):
+    """Check the status of an export task"""
+    from celery.result import AsyncResult
+    
+    task = AsyncResult(task_id)
+    response = {
+        "task_id": task_id,
+        "status": task.status,
+    }
+    
+    if task.status == "SUCCESS":
+        # If task completed successfully, include result info
+        if task.result:
+            response["result"] = task.result
+    elif task.status == "FAILURE":
+        # If task failed, include error info
+        response["error"] = str(task.result) if task.result else "Unknown error"
+    elif task.status == "PROGRESS" and task.info:
+        # If task is in progress, include progress info
+        response["progress"] = task.info
+    
+    return jsonify(response), 200
+
+@admin_bp.route("/exports/download/<filename>", methods=["GET"])
+@admin_required
+def download_export(filename):
+    """Download a generated export file"""
+    try:
+        export_dir = os.path.join(os.getcwd(), 'exports')
+        file_path = os.path.join(export_dir, filename)
+        
+        if not os.path.exists(file_path):
+            return jsonify({"error": "Export file not found"}), 404
+        
+        return send_file(
+            file_path,
+            as_attachment=True,
+            download_name=filename,
+            mimetype="text/csv"
+        )
+    except Exception as e:
+        return jsonify({"error": f"Failed to download file: {str(e)}"}), 500
+
+@admin_bp.route("/exports/list", methods=["GET"])
+@admin_required
+def list_exports():
+    """List all available export files"""
+    try:
+        export_dir = os.path.join(os.getcwd(), 'exports')
+        if not os.path.exists(export_dir):
+            os.makedirs(export_dir, exist_ok=True)
+            
+        files = []
+        for filename in os.listdir(export_dir):
+            if filename.endswith('.csv'):
+                # Get file stats
+                file_path = os.path.join(export_dir, filename)
+                file_stat = os.stat(file_path)
+                
+                # Determine export type
+                export_type = "Unknown"
+                if "user_quiz_statistics" in filename:
+                    export_type = "User Statistics"
+                elif "quiz_statistics" in filename:
+                    export_type = "Quiz Statistics"
+                
+                files.append({
+                    "filename": filename,
+                    "type": export_type,
+                    "size_bytes": file_stat.st_size,
+                    "created_at": datetime.fromtimestamp(file_stat.st_ctime).strftime("%Y-%m-%d %H:%M:%S")
+                })
+                
+        return jsonify({
+            "exports": sorted(files, key=lambda x: x["created_at"], reverse=True)
+        }), 200
+    except Exception as e:
+        return jsonify({"error": f"Failed to list export files: {str(e)}"}), 500

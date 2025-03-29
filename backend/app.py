@@ -3,6 +3,8 @@ from flask import Flask
 from flask_cors import CORS
 from dotenv import load_dotenv
 from extensions import db, bcrypt, jwt, migrate, cache
+from jobs.celery_factory import celery_init_app
+# from flask_caching import Cache
 
 # Load environment variables from .env file
 load_dotenv()
@@ -13,16 +15,23 @@ def create_app(config=None):
     CORS(app)
 
     # Configuration
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///quizmaster.db"
-    # os.environ.get(
-    #     "SQLALCHEMY_DATABASE_URI", "sqlite:///quizmaster.db")
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("SQLALCHEMY_DATABASE_URI")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "your_secret_key")
     app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_SECRET_KEY", "your_jwt_secret_key")
     
-    # Cache configuration - using simple in-memory cache
-    app.config["CACHE_TYPE"] = "SimpleCache"
-    app.config["CACHE_DEFAULT_TIMEOUT"] = 300  # 5 minutes default timeout
+    # Cache configuration
+    app.config["CACHE_TYPE"] = os.getenv("CACHE_TYPE")
+    app.config["CACHE_DEFAULT_TIMEOUT"] = int(os.getenv("CACHE_DEFAULT_TIMEOUT", 30))
+    app.config["CACHE_REDIS_HOST"] = os.getenv("CACHE_REDIS_HOST")
+    app.config["CACHE_REDIS_PORT"] = int(os.getenv("CACHE_REDIS_PORT", 6379))
+    
+    # Celery configuration
+    app.config["CELERY"] = {
+        "broker_url": os.getenv("CELERY_BROKER_URL"),
+        "result_backend": os.getenv("CELERY_RESULT_BACKEND"),
+        "timezone": os.getenv("TIMEZONE", "UTC"),
+    }
     
     # Apply custom configuration if provided
     if config:
@@ -34,7 +43,8 @@ def create_app(config=None):
     jwt.init_app(app)
     migrate.init_app(app, db)
     cache.init_app(app)
-    
+    app.cache = cache
+
     # Register Blueprints
     from routes.admin import admin_bp
     from routes.auth import auth_bp
@@ -60,6 +70,9 @@ def create_app(config=None):
 
     return app
 
+# Create the Flask app
+app = create_app()
+celery_app = celery_init_app(app)
+
 if __name__ == "__main__":
-    app = create_app()
     app.run()  # Run the app in debug mode

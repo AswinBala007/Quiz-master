@@ -6,13 +6,32 @@ from flask import Blueprint, jsonify, request
 from flask_jwt_extended import (create_access_token, get_jwt_identity,
                                 jwt_required)
 
-from app import cache, db
+from extensions import cache, db
 from models import User
+from jobs.tasks import add
+from celery.result import AsyncResult
 
 auth_bp = Blueprint('auth', __name__)
 
-### ✅ User Registration ###
+@auth_bp.route("/cache")
+@cache.memoize(timeout=7)
+def test_cache():
+    return {"time": datetime.now()}
 
+@auth_bp.route("/celery")
+def celery_test():
+    task = add.delay(1,2)
+    return {"task": task.id},200
+
+@auth_bp.route("/celery/status/<task_id>")
+def celery_status(task_id):
+    task = add.AsyncResult(task_id)
+    if task.ready():
+        return {"status": task.status, "result": task.result},200
+    else:
+        return {"status": task.status},202
+
+### ✅ User Registration ###
 @auth_bp.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
@@ -29,8 +48,9 @@ def register():
     new_user.set_password(data['password'])
     db.session.add(new_user)
     db.session.commit()
-
-    # Clear any related caches
+    cache.delete('admin_all_users')  # Clear users list cache
+    cache.delete('admin_statistics')
+    cache.delete('admin_subjects')# Clear any related caches
     cache.delete('all_subjects')  # Force reload of subject lists
     
     return jsonify({"message": "User registered successfully"}), 201
@@ -75,7 +95,7 @@ def admin_required(fn):
 ### ✅ Get Current User (Protected) ###
 @auth_bp.route('/me', methods=['GET'])
 @jwt_required()
-@cache.memoize(timeout=300)  # Cache user profile for 5 minutes
+@cache.memoize(timeout=30)
 def get_current_user():
     current_user_id = get_jwt_identity()
     print(current_user_id)

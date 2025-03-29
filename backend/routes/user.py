@@ -5,7 +5,7 @@ import os
 from flask import Blueprint, jsonify, request, send_file
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
-from app import cache, db
+from extensions import cache, db
 from models import Chapter, Question, Quiz, QuizAttempt, Score, Subject, User
 
 user_bp = Blueprint('user', __name__, url_prefix='/user')
