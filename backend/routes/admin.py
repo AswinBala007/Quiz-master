@@ -87,6 +87,41 @@ def get_dashboard_statistics():
         "subject_statistics": subject_stats_data
     }), 200
 
+# ➤ Update User
+@admin_bp.route("/users/<int:user_id>", methods=["PUT"])
+@admin_required
+def update_user(user_id):
+    data = request.json
+    user = User.query.get(user_id)
+
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    # Update user fields if provided in request
+    if "name" in data:
+        user.full_name = data["name"]
+    if "email" in data:
+        # Check if email already exists for another user
+        existing_user = User.query.filter(User.email == data["email"], User.id != user_id).first()
+        if existing_user:
+            return jsonify({"error": "Email already in use"}), 400
+        user.email = data["email"]
+
+    try:
+        db.session.commit()
+        return jsonify({
+            "message": "User updated successfully",
+            "user": {
+                "id": user.id,
+                "email": user.email,
+                "name": user.full_name,
+                "role": user.role
+            }
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": "Failed to update user"}), 500
+
 
 @admin_bp.route("/users", methods=["GET"])
 @admin_required
