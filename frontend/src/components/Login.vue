@@ -63,10 +63,13 @@ export default {
         // Store token
         localStorage.setItem('token', response.data.access_token)
         
-        // Get user info to determine role
-        const userResponse = await this.$axios.get('/me')
-        const userRole = userResponse.data.role || 'user'
         
+        const userResponse = await this.$axios.get('/me', {
+          headers: {
+            Authorization: `Bearer ${response.data.access_token}`
+          }
+        })
+        const userRole = userResponse.data.role || 'user'
         // Store role
         localStorage.setItem('userRole', userRole)
         

@@ -1,7 +1,6 @@
 <template>
+  <AdminNavBar /> 
   <div class="admin-dashboard">
-    <AdminNav />
-    
     <h1>Admin Dashboard</h1>
     
     <div v-if="loading" class="loading-indicator">Loading dashboard data...</div>
@@ -119,12 +118,12 @@
 </template>
 
 <script>
-import AdminNav from './AdminNav.vue'
+import AdminNavBar from './AdminNavBar.vue';
 
 export default {
   name: 'AdminDashboard',
   components: {
-    AdminNav
+    AdminNavBar
   },
   data() {
     return {
@@ -171,6 +170,11 @@ export default {
       if (score >= 80) return 'score-high'
       if (score >= 60) return 'score-medium'
       return 'score-low'
+    },
+    logout() {
+      localStorage.removeItem('token')
+      localStorage.removeItem('userRole')
+      this.$router.push('/login')
     }
   }
 }
@@ -251,11 +255,10 @@ h1 {
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
-h2 {
+.dashboard-panel h2 {
   margin-top: 0;
   margin-bottom: 1.5rem;
   color: #2c3e50;
-  font-size: 1.5rem;
 }
 
 .table-responsive {
@@ -267,33 +270,30 @@ h2 {
   border-collapse: collapse;
 }
 
-.data-table th {
-  text-align: left;
-  padding: 1rem 0.75rem;
-  border-bottom: 2px solid #eee;
-  color: #555;
-  font-weight: bold;
-}
-
+.data-table th,
 .data-table td {
-  padding: 1rem 0.75rem;
-  border-bottom: 1px solid #eee;
-  color: #333;
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e9ecef;
 }
 
-.score-high {
-  color: #155724;
-  font-weight: bold;
+.data-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
 }
 
-.score-medium {
-  color: #856404;
-  font-weight: bold;
+.panel-footer {
+  margin-top: 1rem;
+  text-align: right;
 }
 
-.score-low {
-  color: #721c24;
-  font-weight: bold;
+.btn-link {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.btn-link:hover {
+  text-decoration: underline;
 }
 
 .subject-stats {
@@ -311,35 +311,28 @@ h2 {
 .subject-name {
   font-weight: bold;
   margin-bottom: 0.5rem;
-  color: #2c3e50;
-}
-
-.subject-chapter-count {
-  color: #666;
-  font-size: 0.9rem;
 }
 
 .chapter-badge {
-  background-color: #42b983;
+  background-color: #6c757d;
   color: white;
-  padding: 0.2rem 0.5rem;
-  border-radius: 20px;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
   font-size: 0.8rem;
+}
+
+.score-high {
+  color: #28a745;
   font-weight: bold;
 }
 
-.panel-footer {
-  margin-top: 1.5rem;
-  text-align: right;
-}
-
-.btn-link {
-  color: #42b983;
-  text-decoration: none;
+.score-medium {
+  color: #ffc107;
   font-weight: bold;
 }
 
-.btn-link:hover {
-  text-decoration: underline;
+.score-low {
+  color: #dc3545;
+  font-weight: bold;
 }
 </style> 

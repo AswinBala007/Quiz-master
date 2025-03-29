@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { createApp } from 'vue'
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 import App from './App.vue'
 
 // Import components for routing
@@ -29,32 +29,32 @@ const routes = [
     {
         path: '/dashboard',
         component: Dashboard,
-        meta: { requiresAuth: true }
+        meta: { requiresAuth: true, role: 'user' }
     },
     {
         path: '/subjects',
         component: SubjectList,
-        meta: { requiresAuth: true }
+        meta: { requiresAuth: true, role: 'user' }
     },
     {
         path: '/quizzes/:subjectId',
         component: QuizList,
-        meta: { requiresAuth: true }
+        meta: { requiresAuth: true, role: 'user' }
     },
     {
         path: '/quiz/:quizId',
         component: QuizAttempt,
-        meta: { requiresAuth: true }
+        meta: { requiresAuth: true, role: 'user' }
     },
     {
         path: '/profile',
         component: UserProfile,
-        meta: { requiresAuth: true }
+        meta: { requiresAuth: true, role: 'user' }
     },
     {
         path: '/history',
         component: UserHistory,
-        meta: { requiresAuth: true }
+        meta: { requiresAuth: true, role: 'user' }
     },
     // Admin routes
     {
@@ -90,7 +90,7 @@ const routes = [
 ]
 
 const router = createRouter({
-    history: createWebHistory(),
+    history: createWebHashHistory(),
     routes
 })
 

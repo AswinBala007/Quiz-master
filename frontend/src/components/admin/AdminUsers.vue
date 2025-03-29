@@ -1,6 +1,6 @@
 <template>
   <div class="admin-users">
-    <AdminNav />
+    <!-- <AdminNav /> -->
     
     <div class="page-header">
       <h1>User Management</h1>
@@ -259,13 +259,13 @@
 </template>
 
 <script>
-import AdminNav from './AdminNav.vue'
+// import AdminNav from './AdminNav.vue'
 
 export default {
   name: 'AdminUsers',
-  components: {
-    AdminNav
-  },
+  // components: {
+  //   AdminNav
+  // },
   data() {
     return {
       users: [],

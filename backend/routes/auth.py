@@ -78,6 +78,7 @@ def admin_required(fn):
 @cache.memoize(timeout=300)  # Cache user profile for 5 minutes
 def get_current_user():
     current_user_id = get_jwt_identity()
+    print(current_user_id)
     
     # Get from database
     user = User.query.get(current_user_id)

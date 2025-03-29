@@ -2,6 +2,7 @@
   <div class="dashboard-container">
     <div v-if="loading" class="loading-indicator">Loading...</div>
     <div v-else>
+      
       <h1>Welcome, {{ user.full_name }}!</h1>
       
       <div class="dashboard-cards">

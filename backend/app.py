@@ -62,4 +62,4 @@ def create_app(config=None):
 
 if __name__ == "__main__":
     app = create_app()
-    app.run(debug=True)  # Run the app in debug mode
+    app.run()  # Run the app in debug mode

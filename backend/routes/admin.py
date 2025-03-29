@@ -12,6 +12,7 @@ admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 ### 1️⃣ Admin Role Checker Decorator ###
 
 
+
 def admin_required(fn):
     @wraps(fn)
     @jwt_required()
@@ -85,6 +86,13 @@ def get_dashboard_statistics():
         "quiz_statistics": quiz_stats_data,
         "subject_statistics": subject_stats_data
     }), 200
+
+
+@admin_bp.route("/users", methods=["GET"])
+@admin_required
+def get_users():
+    users = User.query.all()
+    return jsonify([{"id": user.id, "email": user.email, "name": user.full_name, "role": user.role} for user in users]), 200
 
 
 @admin_bp.route("/dashboard", methods=["GET"])
@@ -230,7 +238,7 @@ def create_quiz(chapter_id):
 # ➤ Get Quizzes Under a Chapter
 @admin_bp.route("/chapters/<int:chapter_id>/quizzes", methods=["GET"])
 @admin_required
-@cache.cached(timeout=1800, key_prefix=lambda: f'chapter_quizzes_{request.view_args["chapter_id"]}')  # Cache for 30 minutes
+@cache.cached(timeout=300, key_prefix=lambda: f'chapter_quizzes_{request.view_args["chapter_id"]}')  # Cache for 5 minutes
 def get_quizzes(chapter_id):
     quizzes = Quiz.query.filter_by(chapter_id=chapter_id).all()
     return jsonify([{"id": q.id, "time_duration": q.time_duration, "remarks": q.remarks} for q in quizzes]), 200
@@ -241,15 +249,21 @@ def get_quizzes(chapter_id):
 @admin_required
 def create_question(quiz_id):
     data = request.json
-    question_text = data.get("question_text")
-    option1 = data.get("option1")
-    option2 = data.get("option2")
-    option3 = data.get("option3")
-    option4 = data.get("option4")
+    options = data.get("options")
+    question_text = data.get("text")
+    option1 = options[0]
+    option2 = options[1]
+    option3 = options[2]
+    option4 = options[3]
     correct_option = data.get("correct_option")
 
-    if not question_text or not option1 or not option2 or not correct_option:
+    print(quiz_id)
+
+    print(question_text,"\n", option1, "\n", option2, "\n", option3, "\n", option4, "\n", correct_option)
+
+    if not question_text or len(options) != 4:
         return jsonify({"error": "Missing required question data"}), 400
+
 
     question = Question(
         quiz_id=quiz_id,

@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
   <div class="admin-nav">
     <div class="admin-nav-header">
       <h2>Admin Panel</h2>
@@ -92,4 +92,4 @@ export default {
     border-left-color: #42b983;
   }
 }
-</style> 
+</style>  -->

@@ -1,30 +1,5 @@
 <template>
-  <div id="app">
-    <header v-if="isLoggedIn">
-      <nav>
-        <div class="nav-brand">Quiz Master</div>
-        <div class="nav-links">
-          <!-- User links -->
-          <template v-if="!isAdmin">
-            <router-link to="/dashboard">Dashboard</router-link>
-            <router-link to="/subjects">Subjects</router-link>
-            <router-link to="/history">History</router-link>
-            <router-link to="/profile">Profile</router-link>
-          </template>
-          
-          <!-- Admin links -->
-          <template v-else>
-            <router-link to="/admin">Admin Dashboard</router-link>
-            <router-link to="/admin/subjects">Subjects</router-link>
-            <router-link to="/admin/users">Users</router-link>
-            <router-link to="/profile">Profile</router-link>
-            <div class="admin-badge">Admin</div>
-          </template>
-          
-          <a href="#" @click.prevent="logout">Logout</a>
-        </div>
-      </nav>
-    </header>
+  <div id="app">   <!-- Navbar: Only renders if userRole is present -->
     <main>
       <router-view></router-view>
     </main>
@@ -34,31 +9,37 @@
 <script>
 export default {
   name: 'App',
-  computed: {
-    isLoggedIn() {
-      return !!localStorage.getItem('token')
-    },
-    isAdmin() {
-      return localStorage.getItem('userRole') === 'admin'
-    }
+  data() {
+    return {
+      userRole: 'user',
+    };
+  },
+  mounted() {
+    this.userRole = localStorage.getItem('userRole');
+    window.addEventListener('storage', this.syncRole); // Sync across tabs
+  },
+  beforeUnmount() {
+    window.removeEventListener('storage', this.syncRole);
   },
   methods: {
     logout() {
-      localStorage.removeItem('token')
-      localStorage.removeItem('userRole')
-      this.$router.push('/login')
-    }
-  }
-}
+      localStorage.removeItem('token');
+      localStorage.removeItem('userRole');
+      this.userRole = null; // Update without reload
+      this.$router.push('/login');
+    },
+    syncRole() {
+      this.userRole = localStorage.getItem('userRole');
+    },
+  },
+};
 </script>
 
-<style>
+<style scoped>
 body {
   margin: 0;
   padding: 0;
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 #app {
@@ -94,7 +75,6 @@ nav {
 .nav-links a {
   color: white;
   text-decoration: none;
-  padding: 0.5rem 0;
 }
 
 .nav-links a:hover,
