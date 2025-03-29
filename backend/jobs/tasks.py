@@ -9,7 +9,7 @@ from datetime import datetime
 from sqlalchemy import func
 from flask import current_app
 # Database imports
-from models import User, Quiz, QuizAttempt, Score
+from models import User, Quiz, QuizAttempt, Score, Chapter, Subject
 
 @shared_task(ignore_result=True)
 def add(x, y):
@@ -188,4 +188,115 @@ def export_quiz_statistics(self):
         return {
             'status': 'ERROR',
             'error': str(e)
+        }
+
+@shared_task(bind=True)
+def export_user_quiz_attempts(self, user_id):
+    """
+    Export all quizzes completed by a specific user.
+    This will create a CSV file with details about each quiz attempt including
+    quiz_id, chapter_id, subject, date, score, etc.
+    """
+    from extensions import db  # Import here to avoid circular import
+    
+    # Set task status to in-progress
+    self.update_state(state='PROGRESS', meta={'status': 'Processing user quiz data...'})
+    
+    try:
+        # Get user info for the filename
+        user = User.query.get(user_id)
+        if not user:
+            return {
+                'status': 'ERROR',
+                'error': f'User with ID {user_id} not found'
+            }
+        
+        # Fetch data: quizzes completed by the user with chapter and subject info
+        quiz_attempts = db.session.query(
+            QuizAttempt.id.label('attempt_id'),
+            QuizAttempt.start_time.label('start_time'),
+            QuizAttempt.end_time.label('end_time'),
+            Quiz.id.label('quiz_id'),
+            Quiz.date_of_quiz.label('date'),
+            Quiz.time_duration.label('duration'),
+            Quiz.remarks.label('quiz_remarks'),
+            Chapter.id.label('chapter_id'),
+            Chapter.name.label('chapter_name'),
+            Subject.id.label('subject_id'),
+            Subject.name.label('subject_name'),
+            Score.total_score.label('score')
+        ).join(
+            Quiz, QuizAttempt.quiz_id == Quiz.id
+        ).join(
+            Chapter, Quiz.chapter_id == Chapter.id
+        ).join(
+            Subject, Chapter.subject_id == Subject.id
+        ).outerjoin(  # Use outerjoin for Score as it might be null for in-progress attempts
+            Score, QuizAttempt.id == Score.quiz_attempt_id
+        ).filter(
+            QuizAttempt.user_id == user_id,
+            QuizAttempt.end_time != None  # Only export completed attempts
+        ).order_by(
+            QuizAttempt.end_time.desc()  # Most recent first
+        ).all()
+        
+        # Create directory for exports if it doesn't exist
+        export_dir = os.path.join(os.getcwd(), 'exports')
+        os.makedirs(export_dir, exist_ok=True)
+        
+        # Generate a unique filename with timestamp
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        filename = f'my_quiz_history_{user.email.split("@")[0]}_{timestamp}.csv'
+        filepath = os.path.join(export_dir, filename)
+        
+        # Write CSV file
+        with open(filepath, 'w', newline='') as csvfile:
+            fieldnames = [
+                'Quiz Attempt ID', 'Quiz ID', 'Subject', 'Chapter', 
+                'Date Taken', 'Start Time', 'End Time', 
+                'Duration (minutes)', 'Time Taken', 'Score (%)', 
+                'Quiz Notes'
+            ]
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            
+            for attempt in quiz_attempts:
+                # Calculate time taken in minutes
+                time_taken = 'N/A'
+                if attempt.start_time and attempt.end_time:
+                    time_diff = attempt.end_time - attempt.start_time
+                    time_taken = f"{int(time_diff.total_seconds() / 60)} minutes"
+                
+                writer.writerow({
+                    'Quiz Attempt ID': attempt.attempt_id,
+                    'Quiz ID': attempt.quiz_id,
+                    'Subject': attempt.subject_name,
+                    'Chapter': attempt.chapter_name,
+                    'Date Taken': attempt.date.strftime('%Y-%m-%d') if attempt.date else 'Not scheduled',
+                    'Start Time': attempt.start_time.strftime('%Y-%m-%d %H:%M') if attempt.start_time else 'N/A',
+                    'End Time': attempt.end_time.strftime('%Y-%m-%d %H:%M') if attempt.end_time else 'In Progress',
+                    'Duration (minutes)': attempt.duration,
+                    'Time Taken': time_taken,
+                    'Score (%)': attempt.score if attempt.score is not None else 'N/A',
+                    'Quiz Notes': attempt.quiz_remarks or 'N/A'
+                })
+        
+        # Task completed successfully
+        result = {
+            'status': 'SUCCESS',
+            'filename': filename,
+            'path': filepath,
+            'timestamp': timestamp,
+            'record_count': len(quiz_attempts),
+            'user_email': user.email
+        }
+        
+        return result
+    
+    except Exception as e:
+        # Log error and return error state
+        error_message = str(e)
+        return {
+            'status': 'ERROR',
+            'error': error_message
         }

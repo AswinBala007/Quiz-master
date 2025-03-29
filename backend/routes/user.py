@@ -7,6 +7,7 @@ from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from extensions import cache, db
 from models import Chapter, Question, Quiz, QuizAttempt, Score, Subject, User
+from jobs.tasks import export_user_quiz_attempts
 
 user_bp = Blueprint('user', __name__, url_prefix='/user')
 
@@ -273,3 +274,118 @@ def get_user_history(user_id):
             continue
 
     return history
+
+### 6️⃣ User Quiz Export Endpoints ###
+
+@user_bp.route('/exports/quiz-history/trigger', methods=['POST'])
+@jwt_required()
+def trigger_quiz_history_export():
+    """Trigger an asynchronous task to export the user's quiz history to CSV"""
+    user_id = get_jwt_identity()
+    
+    try:
+        # Launch the export task with the user's ID
+        task = export_user_quiz_attempts.delay(user_id)
+        
+        return jsonify({
+            "message": "Quiz history export started",
+            "task_id": task.id,
+            "status": "PENDING"
+        }), 202
+    except Exception as e:
+        return jsonify({
+            "error": f"Failed to start export: {str(e)}"
+        }), 500
+
+@user_bp.route('/exports/status/<task_id>', methods=['GET'])
+@jwt_required()
+def get_export_status(task_id):
+    """Check the status of an export task"""
+    from celery.result import AsyncResult
+    
+    task = AsyncResult(task_id)
+    response = {
+        "task_id": task_id,
+        "status": task.status,
+    }
+    
+    if task.status == "SUCCESS":
+        # If task completed successfully, include result info
+        if task.result:
+            response["result"] = task.result
+    elif task.status == "FAILURE":
+        # If task failed, include error info
+        response["error"] = str(task.result) if task.result else "Unknown error"
+    elif task.status == "PROGRESS" and task.info:
+        # If task is in progress, include progress info
+        response["progress"] = task.info
+    
+    return jsonify(response), 200
+
+@user_bp.route('/exports/download/<filename>', methods=['GET'])
+@jwt_required()
+def download_export(filename):
+    """Download a generated export file"""
+    user_id = get_jwt_identity()
+    
+    try:
+        export_dir = os.path.join(os.getcwd(), 'exports')
+        file_path = os.path.join(export_dir, filename)
+        
+        if not os.path.exists(file_path):
+            return jsonify({"error": "Export file not found"}), 404
+        
+        # Security check - only allow downloading files that contain the user's ID
+        # or email in the filename to prevent accessing other users' exports
+        user = User.query.get(user_id)
+        user_identifier = user.email.split('@')[0]
+        
+        # Check if the filename contains the user identifier or user ID
+        if not (user_identifier in filename or f"_{user_id}_" in filename):
+            return jsonify({"error": "You don't have permission to access this file"}), 403
+        
+        return send_file(
+            file_path,
+            as_attachment=True,
+            download_name=filename,
+            mimetype="text/csv"
+        )
+    except Exception as e:
+        return jsonify({"error": f"Failed to download file: {str(e)}"}), 500
+
+@user_bp.route('/exports/list', methods=['GET'])
+@jwt_required()
+def list_exports():
+    """List export files available for the current user"""
+    user_id = get_jwt_identity()
+    
+    try:
+        export_dir = os.path.join(os.getcwd(), 'exports')
+        if not os.path.exists(export_dir):
+            os.makedirs(export_dir, exist_ok=True)
+            
+        files = []
+        user = User.query.get(user_id)
+        user_identifier = user.email.split('@')[0]
+        
+        for filename in os.listdir(export_dir):
+            # Only include files that belong to this user (contain user ID or email prefix in name)
+            if filename.endswith('.csv') and (user_identifier in filename or f"_{user_id}_" in filename):
+                file_path = os.path.join(export_dir, filename)
+                file_stat = os.stat(file_path)
+                
+                # Determine export type
+                export_type = "Quiz History"
+                
+                files.append({
+                    "filename": filename,
+                    "type": export_type,
+                    "size_bytes": file_stat.st_size,
+                    "created_at": datetime.fromtimestamp(file_stat.st_ctime).strftime("%Y-%m-%d %H:%M:%S")
+                })
+                
+        return jsonify({
+            "exports": sorted(files, key=lambda x: x["created_at"], reverse=True)
+        }), 200
+    except Exception as e:
+        return jsonify({"error": f"Failed to list export files: {str(e)}"}), 500
