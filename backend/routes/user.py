@@ -69,6 +69,8 @@ def start_quiz_attempt(quiz_id):
     ).first()
     
     if active_attempt:
+        if active_attempt.start_time.tzinfo is None:
+            active_attempt.start_time = active_attempt.start_time.replace(tzinfo=timezone.utc)
         # Calculate remaining time
         elapsed = datetime.now(timezone.utc) - active_attempt.start_time
         remaining_seconds = max(0, (quiz_obj.time_duration * 60) - elapsed.total_seconds())
@@ -186,6 +188,8 @@ def submit_quiz_attempt():
     
     # Check if time has expired
     quiz = Quiz.query.get(quiz_attempt.quiz_id)
+    if quiz_attempt.start_time.tzinfo is None:
+        quiz_attempt.start_time = quiz_attempt.start_time.replace(tzinfo=timezone.utc)
     elapsed = datetime.now(timezone.utc) - quiz_attempt.start_time
     if elapsed.total_seconds() > (quiz.time_duration * 60):
         # Time expired - give zero score
@@ -219,7 +223,7 @@ def submit_quiz_attempt():
     
     for qid, selected_option in answers.items():
         question = Question.query.get(int(qid))
-        if question and int(selected_option) == question.correct_option:
+        if question and int(selected_option-1) == question.correct_option:
             correct_answers += 1
 
     # Create score record

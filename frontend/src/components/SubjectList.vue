@@ -1,5 +1,6 @@
 <template>
   <div class="subject-container">
+    <UserNavBar />
     <h1>Subjects</h1>
     <div v-if="loading" class="loading-indicator">Loading subjects...</div>
     <div v-else-if="error" class="error-message">{{ error }}</div>
@@ -23,8 +24,12 @@
 </template>
 
 <script>
+import UserNavBar from './UserNavBar.vue'
 export default {
   name: 'SubjectList',
+  components: {
+    UserNavBar
+  },
   data() {
     return {
       subjects: [],

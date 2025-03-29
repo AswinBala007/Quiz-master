@@ -1,6 +1,6 @@
 <template>
   <div class="admin-quizzes">
-    <!-- <AdminNav /> -->
+    <AdminNavBar />
     
     <div class="page-header">
       <h1>Quiz Management: {{ chapterName }}</h1>
@@ -123,13 +123,13 @@
 </template>
 
 <script>
-// import AdminNav from './AdminNav.vue'
+import AdminNavBar from './AdminNavBar.vue'
 
 export default {
   name: 'AdminQuizzes',
-  // components: {
-  //   AdminNav
-  // },
+  components: {
+    AdminNavBar
+  },
   data() {
     return {
       chapterId: null,

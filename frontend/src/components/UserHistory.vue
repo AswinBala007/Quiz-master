@@ -1,5 +1,6 @@
 <template>
   <div class="history-container">
+    <UserNavBar />
     <h1>Quiz History</h1>
     
     <div v-if="loading" class="loading-indicator">Loading your quiz history...</div>
@@ -36,7 +37,7 @@
           <thead>
             <tr>
               <th>Quiz</th>
-              <th>Subject</th>
+              <!-- <th>Subject</th> -->
               <th>Date</th>
               <th>Duration</th>
               <th>Score</th>
@@ -45,9 +46,9 @@
           <tbody>
             <tr v-for="attempt in quizAttempts" :key="attempt.id">
               <td>Quiz #{{ attempt.quiz_id }}</td>
-              <td>{{ attempt.subject_name }}</td>
-              <td>{{ formatDate(attempt.attempt_date) }}</td>
-              <td>{{ formatDuration(attempt.duration) }}</td>
+              <!-- <td>{{ attempt.subject_name }}</td> -->
+              <td>{{ formatDate(attempt.start_time) }}</td>
+              <td>{{ formatDuration(attempt.end_time,attempt.start_time) }}</td>
               <td>
                 <div 
                   class="score-pill"
@@ -65,8 +66,12 @@
 </template>
 
 <script>
+import UserNavBar from './UserNavBar.vue'
 export default {
   name: 'UserHistory',
+  components: {
+    UserNavBar
+  },
   data() {
     return {
       quizAttempts: [],
@@ -78,14 +83,17 @@ export default {
     averageScore() {
       if (this.quizAttempts.length === 0) return 0
       
-      const sum = this.quizAttempts.reduce((total, attempt) => total + attempt.score, 0)
-      return Math.round(sum / this.quizAttempts.length)
+      const validAttempts = this.quizAttempts.filter(attempt => attempt.score !== 'N/A')
+      const sum = validAttempts.reduce((total, attempt) => total + attempt.score, 0)
+      console.log(sum)
+      return validAttempts.length ? Math.round(sum / validAttempts.length) : 0
     },
     
     highestScore() {
       if (this.quizAttempts.length === 0) return 0
       
-      return Math.max(...this.quizAttempts.map(attempt => attempt.score))
+      const validAttempts = this.quizAttempts.filter(attempt => attempt.score !== 'N/A')
+      return Math.max(...validAttempts.map(attempt => attempt.score))
     }
   },
   async created() {
@@ -95,6 +103,7 @@ export default {
     async fetchHistory() {
       try {
         const response = await this.$axios.get('/user/history')
+        console.log(response.data)
         this.quizAttempts = response.data
       } catch (error) {
         this.error = 'Failed to load quiz history. Please try again later.'
@@ -123,13 +132,20 @@ export default {
       })
     },
     
-    formatDuration(seconds) {
-      if (!seconds) return 'N/A'
+    formatDuration(end_time,start_time) {
+      console.log(end_time,start_time)
+      if (!end_time || !start_time) return 'N/A'
       
-      const minutes = Math.floor(seconds / 60)
-      const remainingSeconds = seconds % 60
-      
-      return `${minutes}m ${remainingSeconds}s`
+      const start = new Date(start_time.replace(' ', 'T'));
+      const end = new Date(end_time.replace(' ', 'T'));
+
+      // Calculate difference in milliseconds
+      const diffMs = end - start;
+
+      // Convert milliseconds to minutes
+      const minutes = Math.floor(diffMs / (1000 * 60));
+      return `${minutes} minutes`;
+
     },
     
     getScoreClass(score) {

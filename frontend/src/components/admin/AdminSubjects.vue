@@ -1,6 +1,6 @@
 <template>
   <div class="admin-subjects">
-    <!-- <AdminNav /> -->
+    <AdminNavBar />
     
     <h1>Subject Management</h1>
     
@@ -131,13 +131,13 @@
 </template>
 
 <script>
-// import AdminNav from './AdminNav.vue'
+import AdminNavBar from './AdminNavBar.vue'
 
 export default {
   name: 'AdminSubjects',
-  // components: {
-  //   AdminNav
-  // },
+  components: {
+    AdminNavBar
+  },
   data() {
     return {
       subjects: [],

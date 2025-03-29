@@ -1,5 +1,9 @@
 <template>
+  <!-- <AdminNavBar v-if="user && user.role == 'admin'" /> -->
+  
   <div class="profile-container">
+    <!-- <AdminNavBar v-if="localStorage.getItem('userRole') == 'admin'" />
+    <UserNavBar v-else-if="localStorage.getItem('userRole') == 'user'" /> -->
     <h1>User Profile</h1>
     
     <div v-if="loading" class="loading-indicator">Loading profile...</div>

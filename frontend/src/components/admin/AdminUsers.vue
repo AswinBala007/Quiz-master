@@ -1,6 +1,6 @@
 <template>
   <div class="admin-users">
-    <!-- <AdminNav /> -->
+    <AdminNavBar />
     
     <div class="page-header">
       <h1>User Management</h1>
@@ -49,7 +49,7 @@
               <th>Username</th>
               <th>Email</th>
               <th>Role</th>
-              <th>Status</th>
+              <!-- <th>Status</th> -->
               <th>Actions</th>
             </tr>
           </thead>
@@ -75,11 +75,11 @@
                   {{ user.role }}
                 </span>
               </td>
-              <td>
+              <!-- <td>
                 <span :class="['status-badge', user.active ? 'active-status' : 'inactive-status']">
                   {{ user.active ? 'Active' : 'Inactive' }}
                 </span>
-              </td>
+              </td> -->
               <td class="actions-cell">
                 <button class="btn-icon" title="Edit" @click="editUser(user)">✏️</button>
                 <button 
@@ -88,15 +88,15 @@
                   title="Toggle Status" 
                   @click="confirmToggleStatus(user)"
                 >
-                  {{ user.active ? '🔒' : '🔓' }}
+                  <!-- {{ user.active ? '🔒' : '🔓' }} -->
                 </button>
-                <button 
+                <!-- <button 
                   class="btn-icon" 
                   title="Reset Password" 
                   @click="confirmResetPassword(user)"
                 >
                   🔑
-                </button>
+                </button> -->
               </td>
             </tr>
           </tbody>
@@ -259,13 +259,13 @@
 </template>
 
 <script>
-// import AdminNav from './AdminNav.vue'
+import AdminNavBar from './AdminNavBar.vue'
 
 export default {
   name: 'AdminUsers',
-  // components: {
-  //   AdminNav
-  // },
+  components: {
+    AdminNavBar
+  },
   data() {
     return {
       users: [],
@@ -360,8 +360,7 @@ export default {
         const query = this.searchQuery.toLowerCase()
         filtered = filtered.filter(user => 
           user.name.toLowerCase().includes(query) ||
-          user.email.toLowerCase().includes(query) ||
-          user.username.toLowerCase().includes(query)
+          user.email.toLowerCase().includes(query) 
         )
       }
       

@@ -1,5 +1,6 @@
 <template>
   <div class="quiz-container">
+    <UserNavBar />
     <div class="page-header">
       <h1>Quizzes</h1>
       <button class="btn-back" @click="$router.push('/subjects')">&larr; Back to Subjects</button>
@@ -38,8 +39,12 @@
 </template>
 
 <script>
+import UserNavBar from './UserNavBar.vue'
 export default {
   name: 'QuizList',
+  components: {
+    UserNavBar
+  },
   data() {
     return {
       quizzes: [],

@@ -1,5 +1,6 @@
 <template>
   <div class="dashboard-container">
+    <UserNavBar/>
     <div v-if="loading" class="loading-indicator">Loading...</div>
     <div v-else>
       
@@ -43,8 +44,12 @@
 </template>
 
 <script>
+import UserNavBar from './UserNavBar.vue'
 export default {
   name: 'UserDashboard',
+  components: {
+    UserNavBar
+  },
   data() {
     return {
       user: {},

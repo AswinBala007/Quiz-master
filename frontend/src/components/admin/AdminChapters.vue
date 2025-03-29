@@ -1,6 +1,6 @@
 <template>
   <div class="admin-chapters">
-    <!-- <AdminNav /> -->
+    <AdminNavBar />
     
     <div class="page-header">
       <h1>Chapter Management: {{ subjectName }}</h1>
@@ -116,13 +116,13 @@
 </template>
 
 <script>
-// import AdminNav from './AdminNav.vue'
+import AdminNavBar from './AdminNavBar.vue'
 
 export default {
   name: 'AdminChapters',
-  // components: {
-  //   AdminNav
-  // },
+  components: {
+    AdminNavBar
+  },
   data() {
     return {
       subjectId: null,
