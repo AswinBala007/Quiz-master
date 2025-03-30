@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly Activity Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background-color: #4B7BEC;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px 5px 0 0;
+        }
+
+        .content {
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+        }
+
+        .summary {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .highlight {
+            font-weight: bold;
+            color: #4B7BEC;
+        }
+
+        .progress-bar {
+            background-color: #e0e0e0;
+            border-radius: 13px;
+            height: 20px;
+            width: 100%;
+            padding: 0;
+            margin: 5px 0;
+        }
+
+        .progress {
+            background-color: #4B7BEC;
+            border-radius: 13px;
+            height: 20px;
+            text-align: center;
+            color: white;
+            font-size: 12px;
+            line-height: 20px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #777;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>Monthly Activity Report</h1>
+        <p>{{ report_month }} {{ report_year }}</p>
+    </div>
+
+    <div class="content">
+        <h2>Hello {{ user.full_name }},</h2>
+        <p>Here's your activity summary for the past month on Quiz Master:</p>
+
+        <div class="summary">
+            <h3>Monthly Summary</h3>
+            <p>Total Quizzes Attempted: <span class="highlight">{{ total_attempts }}</span></p>
+            <p>Average Score: <span class="highlight">{{ average_score }}%</span></p>
+            <p>Highest Score: <span class="highlight">{{ highest_score }}%</span></p>
+            {% if ranking %}
+            <p>Your Ranking: <span class="highlight">{{ ranking }}</span> out of {{ total_users }}</p>
+            {% endif %}
+
+            <h4>Your Progress</h4>
+            <div class="progress-bar">
+                <div class="progress" style="width: {{ average_score }}%;">{{ average_score }}%</div>
+            </div>
+        </div>
+
+        {% if quiz_attempts %}
+        <h3>Quiz Details</h3>
+        <table>
+            <tr>
+                <th>Date</th>
+                <th>Subject</th>
+                <th>Chapter</th>
+                <th>Score</th>
+            </tr>
+            {% for attempt in quiz_attempts %}
+            <tr>
+                <td>{{ attempt.date }}</td>
+                <td>{{ attempt.subject }}</td>
+                <td>{{ attempt.chapter }}</td>
+                <td>{{ attempt.score }}%</td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <p>You haven't attempted any quizzes this month. We encourage you to take some quizzes and improve your
+            knowledge!</p>
+        {% endif %}
+
+        {% if improvement %}
+        <h3>Areas for Improvement</h3>
+        <p>Based on your performance, we recommend focusing on the following subjects:</p>
+        <ul>
+            {% for subject in improvement %}
+            <li>{{ subject }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        {% if new_quizzes %}
+        <h3>New Quizzes Available</h3>
+        <p>Check out these new quizzes that have been added:</p>
+        <ul>
+            {% for quiz in new_quizzes %}
+            <li>{{ quiz.subject }} - {{ quiz.chapter }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        <p>Keep up the good work and continue exploring new quizzes to enhance your knowledge!</p>
+    </div>
+
+    <div class="footer">
+        <p>This is an automated email from Quiz Master. Please do not reply to this email.</p>
+        <p>&copy; {{ report_year }} Quiz Master. All rights reserved.</p>
+    </div>
+</body>
+
+</html>

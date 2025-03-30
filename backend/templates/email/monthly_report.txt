@@ -1,0 +1,49 @@
+Monthly Activity Report - {{ report_month }} {{ report_year }}
+
+Hello {{ user.full_name }},
+
+Here's your activity summary for the past month on Quiz Master:
+
+MONTHLY SUMMARY
+--------------
+Total Quizzes Attempted: {{ total_attempts }}
+Average Score: {{ average_score }}%
+Highest Score: {{ highest_score }}%
+{% if ranking %}Your Ranking: {{ ranking }} out of {{ total_users }}{% endif %}
+
+{% if quiz_attempts %}
+QUIZ DETAILS
+-----------
+{% for attempt in quiz_attempts %}
+Date: {{ attempt.date }}
+Subject: {{ attempt.subject }}
+Chapter: {{ attempt.chapter }}
+Score: {{ attempt.score }}%
+{% endfor %}
+{% else %}
+You haven't attempted any quizzes this month. We encourage you to take some quizzes and improve your knowledge!
+{% endif %}
+
+{% if improvement %}
+AREAS FOR IMPROVEMENT
+-------------------
+Based on your performance, we recommend focusing on the following subjects:
+{% for subject in improvement %}
+- {{ subject }}
+{% endfor %}
+{% endif %}
+
+{% if new_quizzes %}
+NEW QUIZZES AVAILABLE
+-------------------
+Check out these new quizzes that have been added:
+{% for quiz in new_quizzes %}
+- {{ quiz.subject }} - {{ quiz.chapter }}
+{% endfor %}
+{% endif %}
+
+Keep up the good work and continue exploring new quizzes to enhance your knowledge!
+
+---
+This is an automated email from Quiz Master. Please do not reply to this email.
+© {{ report_year }} Quiz Master. All rights reserved.

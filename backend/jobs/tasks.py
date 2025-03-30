@@ -5,11 +5,16 @@ import csv
 import os
 import io
 import json
-from datetime import datetime
-from sqlalchemy import func
-from flask import current_app
+import requests
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from datetime import datetime, timedelta, date
+from sqlalchemy import func, and_, desc
+from flask import current_app, render_template
 # Database imports
-from models import User, Quiz, QuizAttempt, Score, Chapter, Subject
+from models import User, Quiz, QuizAttempt, Score, Chapter, Subject, UserPreference
+import calendar
 
 @shared_task(ignore_result=True)
 def add(x, y):
@@ -300,3 +305,258 @@ def export_user_quiz_attempts(self, user_id):
             'status': 'ERROR',
             'error': error_message
         }
+
+@shared_task(ignore_result = True)
+def email_reminder(to, subject, content):
+    """
+    Send an email reminder.
+    
+    Args:
+        to: Recipient's email address
+        subject: Email subject
+        content: Email content
+    """
+    # Create a simple text-only version
+    html_content = f"<html><body>{content}</body></html>"
+    send_html_email(to, subject, html_content, content)
+
+@shared_task(bind=True)
+def send_monthly_activity_report(self):
+    """
+    Celery task to generate and send monthly activity reports to all users.
+    This task is scheduled to run on the 1st day of each month.
+    Reports include quiz performance metrics for the previous month.
+    """
+    from extensions import db  # Import here to avoid circular import
+    
+    try:
+        # Get the previous month's date range
+        today = date.today()
+        first_day_of_current_month = date(today.year, today.month, 1)
+        last_day_of_previous_month = first_day_of_current_month - timedelta(days=1)
+        first_day_of_previous_month = date(last_day_of_previous_month.year, last_day_of_previous_month.month, 1)
+        
+        # Month and year for the report
+        report_month = calendar.month_name[last_day_of_previous_month.month]
+        report_year = last_day_of_previous_month.year
+        
+        # Get all users with role 'user'
+        users = User.query.filter_by(role='user').all()
+        
+        # Calculate average scores and rankings for all users for the previous month
+        user_rankings = []
+        for user in users:
+            # Find all completed quiz attempts for this user in the previous month
+            month_attempts = db.session.query(QuizAttempt).join(Score).filter(
+                QuizAttempt.user_id == user.id,
+                QuizAttempt.end_time != None,
+                QuizAttempt.end_time >= first_day_of_previous_month,
+                QuizAttempt.end_time <= last_day_of_previous_month
+            ).all()
+            
+            # Calculate average score if there are attempts
+            total_score = 0
+            highest_score = 0
+            
+            if month_attempts:
+                for attempt in month_attempts:
+                    if attempt.score and attempt.score.total_score > highest_score:
+                        highest_score = attempt.score.total_score
+                    if attempt.score:
+                        total_score += attempt.score.total_score
+                
+                avg_score = round(total_score / len(month_attempts), 1)
+            else:
+                avg_score = 0
+            
+            user_rankings.append({
+                'user_id': user.id,
+                'average_score': avg_score,
+                'attempts': len(month_attempts)
+            })
+        
+        # Sort users by average score to determine rankings
+        user_rankings.sort(key=lambda x: x['average_score'], reverse=True)
+        
+        # Assign rankings
+        rank = 1
+        prev_score = None
+        for i, user_rank in enumerate(user_rankings):
+            if prev_score is not None and user_rank['average_score'] < prev_score:
+                rank = i + 1
+            user_rank['rank'] = rank
+            prev_score = user_rank['average_score']
+        
+        # Create a lookup for quick rank retrieval
+        ranking_lookup = {ur['user_id']: ur for ur in user_rankings}
+        
+        # Get the total number of active users who attempted a quiz in the past month
+        total_active_users = db.session.query(func.count(func.distinct(QuizAttempt.user_id))).filter(
+            QuizAttempt.end_time != None,
+            QuizAttempt.end_time >= first_day_of_previous_month,
+            QuizAttempt.end_time <= last_day_of_previous_month
+        ).scalar()
+        
+        # Find new quizzes created in the last month
+        new_quizzes = db.session.query(Quiz, Chapter, Subject).join(
+            Chapter, Quiz.chapter_id == Chapter.id
+        ).join(
+            Subject, Chapter.subject_id == Subject.id
+        ).filter(
+            Quiz.date_of_quiz >= first_day_of_previous_month,
+            Quiz.date_of_quiz <= last_day_of_previous_month
+        ).all()
+        
+        # Format new quizzes for display
+        formatted_new_quizzes = []
+        for quiz, chapter, subject in new_quizzes:
+            formatted_new_quizzes.append({
+                'id': quiz.id,
+                'subject': subject.name,
+                'chapter': chapter.name
+            })
+        
+        reports_sent = 0
+        
+        # Generate and send report for each user
+        for user in users:
+            # Skip users with no activity in the past month and no new quizzes
+            if user.id not in ranking_lookup and not formatted_new_quizzes:
+                continue
+            
+            # Get user's quiz attempts from the past month
+            user_attempts = db.session.query(
+                QuizAttempt, Quiz, Chapter, Subject, Score
+            ).join(
+                Quiz, QuizAttempt.quiz_id == Quiz.id
+            ).join(
+                Chapter, Quiz.chapter_id == Chapter.id
+            ).join(
+                Subject, Chapter.subject_id == Subject.id
+            ).join(
+                Score, QuizAttempt.id == Score.quiz_attempt_id
+            ).filter(
+                QuizAttempt.user_id == user.id,
+                QuizAttempt.end_time != None,
+                QuizAttempt.end_time >= first_day_of_previous_month,
+                QuizAttempt.end_time <= last_day_of_previous_month
+            ).order_by(
+                QuizAttempt.end_time.desc()
+            ).all()
+            
+            # Format the attempts for the template
+            formatted_attempts = []
+            subject_scores = {}
+            
+            for attempt, quiz, chapter, subject, score in user_attempts:
+                formatted_attempts.append({
+                    'date': attempt.end_time.strftime('%Y-%m-%d %H:%M'),
+                    'subject': subject.name,
+                    'chapter': chapter.name,
+                    'score': score.total_score
+                })
+                
+                # Track scores by subject for improvement recommendations
+                if subject.name not in subject_scores:
+                    subject_scores[subject.name] = []
+                subject_scores[subject.name].append(score.total_score)
+            
+            # Identify subjects that need improvement (below 70% average)
+            improvement_areas = []
+            for subject, scores in subject_scores.items():
+                subject_avg = sum(scores) / len(scores)
+                if subject_avg < 70:
+                    improvement_areas.append(subject)
+            
+            # Get user's ranking information
+            user_ranking = ranking_lookup.get(user.id, {
+                'average_score': 0,
+                'attempts': 0,
+                'rank': 'N/A'
+            })
+            
+            # Prepare template context
+            context = {
+                'user': user,
+                'report_month': report_month,
+                'report_year': report_year,
+                'total_attempts': user_ranking['attempts'],
+                'average_score': user_ranking['average_score'],
+                'highest_score': max([a['score'] for a in formatted_attempts]) if formatted_attempts else 0,
+                'ranking': user_ranking['rank'] if user_ranking['attempts'] > 0 else None,
+                'total_users': total_active_users,
+                'quiz_attempts': formatted_attempts,
+                'improvement': improvement_areas,
+                'new_quizzes': formatted_new_quizzes
+            }
+            
+            # Render the HTML and text versions of the email
+            html_content = render_template('email/monthly_report.html', **context)
+            text_content = render_template('email/monthly_report.txt', **context)
+            
+            # Send the report email
+            subject = f"Your Quiz Master Activity Report - {report_month} {report_year}"
+            
+            # Send email with both HTML and text versions
+            sent = send_html_email(user.email, subject, html_content, text_content)
+            
+            if sent:
+                reports_sent += 1
+        
+        return {
+            'status': 'SUCCESS',
+            'reports_sent': reports_sent,
+            'month': report_month,
+            'year': report_year
+        }
+        
+    except Exception as e:
+        # Log error and return error state
+        print(f"Error sending monthly reports: {str(e)}")
+        return {
+            'status': 'ERROR',
+            'error': str(e)
+        }
+
+def send_html_email(email, subject, html_content, text_content):
+    """
+    Send an HTML email with a text fallback using SMTP (compatible with MailHog).
+    
+    Args:
+        email: Recipient's email address
+        subject: Email subject
+        html_content: HTML content of the email
+        text_content: Plain text version of the email
+        
+    Returns:
+        bool: True if email was sent successfully, False otherwise
+    """
+    try:
+        # MailHog default configuration
+        smtp_host = "localhost"
+        smtp_port = 1025  # Default MailHog SMTP port
+        sender_email = "quizmaster@example.com"
+        
+        # Create message
+        msg = MIMEMultipart('alternative')
+        msg['From'] = sender_email
+        msg['To'] = email
+        msg['Subject'] = subject
+        
+        # Attach text and HTML versions
+        part1 = MIMEText(text_content, 'plain')
+        part2 = MIMEText(html_content, 'html')
+        
+        # The email client will try to render the last part first
+        msg.attach(part1)
+        msg.attach(part2)
+        
+        # Send email using SMTP
+        with smtplib.SMTP(smtp_host, smtp_port) as server:
+            server.sendmail(sender_email, email, msg.as_string())
+            
+        print(f"Monthly report email sent to {email} via MailHog")
+        return True
+    except Exception as e:
+        print(f"Error sending HTML email: {str(e)}")
+        return False

@@ -6,8 +6,10 @@ from flask import Blueprint, jsonify, request, send_file
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from extensions import cache, db
-from models import Chapter, Question, Quiz, QuizAttempt, Score, Subject, User
+from models import Chapter, Question, Quiz, QuizAttempt, Score, Subject, User, UserPreference
 from jobs.tasks import export_user_quiz_attempts
+# Import for testing notifications
+from jobs.tasks import  send_monthly_activity_report
 
 user_bp = Blueprint('user', __name__, url_prefix='/user')
 
@@ -389,3 +391,143 @@ def list_exports():
         }), 200
     except Exception as e:
         return jsonify({"error": f"Failed to list export files: {str(e)}"}), 500
+
+### 7️⃣ User Notification Preferences ###
+# @user_bp.route('/preferences/notification', methods=['GET'])
+# @jwt_required()
+# def get_notification_preferences():
+#     """Get the user's notification preferences."""
+#     user_id = get_jwt_identity()
+    
+#     # Find or create user preferences
+#     user_pref = UserPreference.query.filter_by(user_id=user_id).first()
+    
+#     if not user_pref:
+#         # Create default preferences if not exist
+#         user_pref = UserPreference(
+#             user_id=user_id,
+#             reminder_enabled=True,
+#             reminder_time=datetime.now().time().replace(hour=18, minute=0, second=0, microsecond=0),
+#             contact_method='email'
+#         )
+#         db.session.add(user_pref)
+#         db.session.commit()
+    
+#     # Format the time as string
+#     reminder_time_str = user_pref.reminder_time.strftime('%H:%M') if user_pref.reminder_time else '18:00'
+    
+#     return jsonify({
+#         'reminder_enabled': user_pref.reminder_enabled,
+#         'reminder_time': reminder_time_str,
+#         'contact_method': user_pref.contact_method,
+#         'contact_value': user_pref.contact_value
+#     })
+
+# @user_bp.route('/preferences/notification', methods=['PUT'])
+# @jwt_required()
+# def update_notification_preferences():
+#     """Update the user's notification preferences."""
+#     user_id = get_jwt_identity()
+#     data = request.json
+    
+#     # Validate input
+#     reminder_enabled = data.get('reminder_enabled', True)
+#     reminder_time_str = data.get('reminder_time', '18:00')
+#     contact_method = data.get('contact_method', 'email')
+#     contact_value = data.get('contact_value', '')
+    
+#     # Validate time format
+#     try:
+#         hour, minute = map(int, reminder_time_str.split(':'))
+#         reminder_time = datetime.time(hour=hour, minute=minute)
+#     except (ValueError, TypeError):
+#         return jsonify({'error': 'Invalid time format. Use HH:MM (24-hour format)'}), 400
+    
+#     # Validate contact method
+#     if contact_method not in ['email', 'sms', 'gchat']:
+#         return jsonify({'error': 'Invalid contact method. Use "email", "sms", or "gchat"'}), 400
+    
+#     # Find or create user preferences
+#     user_pref = UserPreference.query.filter_by(user_id=user_id).first()
+    
+#     if not user_pref:
+#         user_pref = UserPreference(user_id=user_id)
+#         db.session.add(user_pref)
+    
+#     # Update preferences
+#     user_pref.reminder_enabled = reminder_enabled
+#     user_pref.reminder_time = reminder_time
+#     user_pref.contact_method = contact_method
+#     user_pref.contact_value = contact_value
+#     user_pref.updated_at = datetime.now(timezone.utc)
+    
+#     db.session.commit()
+    
+#     return jsonify({
+#         'message': 'Notification preferences updated successfully',
+#         'reminder_enabled': user_pref.reminder_enabled,
+#         'reminder_time': user_pref.reminder_time.strftime('%H:%M'),
+#         'contact_method': user_pref.contact_method,
+#         'contact_value': user_pref.contact_value
+#     })
+
+@user_bp.route('/test-reminder', methods=['POST'])
+@jwt_required()
+def test_reminder():
+    """Send a test reminder to the user."""
+    user_id = get_jwt_identity()
+    
+    # Get the user
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    
+    # Get the user's preferences
+    user_pref = UserPreference.query.filter_by(user_id=user_id).first()
+    if not user_pref:
+        # Create default preferences if not exist
+        user_pref = UserPreference(
+            user_id=user_id,
+            reminder_enabled=True,
+            reminder_time=datetime.now().time().replace(hour=18, minute=0, second=0, microsecond=0),
+            contact_method='email'
+        )
+        db.session.add(user_pref)
+        db.session.commit()
+    
+    # Craft a test message
+    message = (
+        f"Hello {user.full_name},\n\n"
+        f"This is a test reminder from Quiz Master.\n"
+        f"Your notification preferences are set to receive reminders at "
+        f"{user_pref.reminder_time.strftime('%H:%M')} "
+        f"via {user_pref.contact_method}.\n\n"
+        f"If you received this message, your notification settings are working correctly."
+    )
+    
+    # Send the notification
+    success = send_notification(user, user_pref, message)
+    
+    if success:
+        return jsonify({'message': 'Test reminder sent successfully'})
+    else:
+        return jsonify({'error': 'Failed to send test reminder'}), 500
+
+@user_bp.route('/test-monthly-report', methods=['POST'])
+@jwt_required()
+def test_monthly_report():
+    """Generate and send a test monthly activity report to the current user."""
+    user_id = get_jwt_identity()
+    
+    # Check if the user is authorized
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    
+    # Start the task to generate and send the report
+    task = send_monthly_activity_report.delay()
+    
+    return jsonify({
+        'message': 'Monthly report generation started',
+        'task_id': task.id
+    })
