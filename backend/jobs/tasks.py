@@ -12,7 +12,8 @@ from email.mime.multipart import MIMEMultipart
 from datetime import datetime, timedelta, date, timezone
 from sqlalchemy import func, and_, desc
 from flask import current_app, render_template
-# from mail_service import send_reminder_mail
+from mail_service import send_remainder_mail
+
 # Database imports
 from models import User, Quiz, QuizAttempt, Score, Chapter, Subject
 import calendar
@@ -48,7 +49,7 @@ def send_conditional_daily_email():
     #     if quiz.email:
     #         users_to_send_email.append(quiz.email)
     #         users_mail_name.append(quiz.full_name)
-    send_remainder_mail(users_to_send_email)
+    send_remainder_mail(users_to_send_email,users_mail_name)
     # send_reminder_mail(users_to_send_email, "New Quizzes Available")
     # for user_email, user_name in zip(users_to_send_email, users_mail_name):
     #     send_reminder_mail(user_email, user_name)

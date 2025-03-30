@@ -256,3 +256,47 @@ Traceback (most recent call last):
   File "/Users/aswinbala/opt/anaconda3/lib/python3.9/site-packages/celery/worker/consumer/consumer.py", line 591, in on_task_received
     strategy = strategies[type_]
 KeyError: 'jobs.tasks.send_conditional_daily_email'
+[2025-03-30 18:29:00,043: ERROR/MainProcess] Received unregistered task of type 'jobs.tasks.send_conditional_daily_email'.
+The message has been ignored and discarded.
+
+Did you remember to import the module containing this task?
+Or maybe you're using relative imports?
+
+Please see
+http://docs.celeryq.org/en/latest/internals/protocol.html
+for more information.
+
+The full contents of the message body was:
+b'[[], {}, {"callbacks": null, "errbacks": null, "chain": null, "chord": null}]' (77b)
+
+Thw full contents of the message headers:
+{'lang': 'py', 'task': 'jobs.tasks.send_conditional_daily_email', 'id': '44b3df1f-29da-4f5f-8fa6-06d5e7ddaa3f', 'shadow': None, 'eta': None, 'expires': '2025-03-30T18:44:00.028114+05:30', 'group': None, 'group_index': None, 'retries': 0, 'timelimit': [None, None], 'root_id': '44b3df1f-29da-4f5f-8fa6-06d5e7ddaa3f', 'parent_id': None, 'argsrepr': '()', 'kwargsrepr': '{}', 'origin': 'gen10250@Aswins-MacBook-Air-2.local', 'ignore_result': True}
+
+The delivery info for this task is:
+{'exchange': '', 'routing_key': 'celery'}
+Traceback (most recent call last):
+  File "/Users/aswinbala/opt/anaconda3/lib/python3.9/site-packages/celery/worker/consumer/consumer.py", line 591, in on_task_received
+    strategy = strategies[type_]
+KeyError: 'jobs.tasks.send_conditional_daily_email'
+[2025-03-30 18:31:00,025: ERROR/MainProcess] Received unregistered task of type 'jobs.tasks.send_conditional_daily_email'.
+The message has been ignored and discarded.
+
+Did you remember to import the module containing this task?
+Or maybe you're using relative imports?
+
+Please see
+http://docs.celeryq.org/en/latest/internals/protocol.html
+for more information.
+
+The full contents of the message body was:
+b'[[], {}, {"callbacks": null, "errbacks": null, "chain": null, "chord": null}]' (77b)
+
+Thw full contents of the message headers:
+{'lang': 'py', 'task': 'jobs.tasks.send_conditional_daily_email', 'id': '0dfa3bc8-8233-453a-84d0-011d8f00886e', 'shadow': None, 'eta': None, 'expires': '2025-03-30T18:46:00.017515+05:30', 'group': None, 'group_index': None, 'retries': 0, 'timelimit': [None, None], 'root_id': '0dfa3bc8-8233-453a-84d0-011d8f00886e', 'parent_id': None, 'argsrepr': '()', 'kwargsrepr': '{}', 'origin': 'gen10250@Aswins-MacBook-Air-2.local', 'ignore_result': True}
+
+The delivery info for this task is:
+{'exchange': '', 'routing_key': 'celery'}
+Traceback (most recent call last):
+  File "/Users/aswinbala/opt/anaconda3/lib/python3.9/site-packages/celery/worker/consumer/consumer.py", line 591, in on_task_received
+    strategy = strategies[type_]
+KeyError: 'jobs.tasks.send_conditional_daily_email'
