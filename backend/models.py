@@ -1,8 +1,6 @@
-from datetime import datetime, timezone
-from extensions import db, bcrypt
-# from flask_migrate import Migrate
-
-# migrate = Migrate(app, db)
+from datetime import datetime, timezone, time
+from extensions import db, bcrypt, migrate
+from flask_migrate import Migrate
 
 ### 1️⃣ User Model (Admin & User) ###
 
@@ -18,11 +16,12 @@ class User(db.Model):
     role = db.Column(db.String(10), default="user")  # 'admin' or 'user'
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     last_login = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-
+    user_preferences = db.Column(db.Time,default=time(18,0), nullable=True)
     # Relationships
     quiz_attempts = db.relationship('QuizAttempt', backref='user', lazy=True)
     scores = db.relationship('Score', back_populates='user', lazy=True)
-
+    # UserPreference relationship is defined in the UserPreference model with backref
+    
     def set_password(self, password):
         self.password = bcrypt.generate_password_hash(password).decode('utf-8')
         
@@ -120,6 +119,25 @@ class Score(db.Model):
 
     def __repr__(self):
         return f"Score('{self.total_score}', Attempt ID: {self.quiz_attempt_id}')"
+
+
+# ### 8️⃣ UserPreference Model ###
+# class UserPreference(db.Model):
+#     id = db.Column(db.Integer, primary_key=True)
+#     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+#     reminder_enabled = db.Column(db.Boolean, default=True)
+#     reminder_time = db.Column(db.Time, default=time(18, 0))  # Default 6:00 PM
+#     contact_method = db.Column(db.String(20), default="email")  # email, sms, gchat
+#     contact_value = db.Column(db.String(255), nullable=True)  # webhook URL, phone number or email
+#     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+#     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), 
+#                          onupdate=lambda: datetime.now(timezone.utc))
+
+#     # Relationship with User
+#     user = db.relationship('User', backref=db.backref('preferences', lazy=True, uselist=False))
+
+#     def __repr__(self):
+#         return f"UserPreference(User ID: {self.user_id}, Reminder Time: {self.reminder_time})"
 
 
 ### Database Initialization ###

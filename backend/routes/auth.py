@@ -113,7 +113,8 @@ def get_current_user():
         "full_name": user.full_name,
         "role": user.role,
         "created_at": user.created_at.strftime("%Y-%m-%d %H:%M:%S"),
-        "last_login": user.last_login.strftime("%Y-%m-%d %H:%M:%S") if user.last_login else None
+        "last_login": user.last_login.strftime("%Y-%m-%d %H:%M:%S") if user.last_login else None,
+        "user_preferences": user.user_preferences.strftime("%H:%M") if user.user_preferences else None
     }
 
     return jsonify(user_data), 200
@@ -138,6 +139,22 @@ def update_profile():
         user.qualification = data['qualification']
     if 'dob' in data and data['dob']:
         user.dob = datetime.strptime(data['dob'], "%d/%m/%Y")
+    if 'user_preferences' in data:
+        try:
+            # Split hour and minute from the data
+            hour = int(data['user_preferences'].split(':')[0])
+            minute = int(data['user_preferences'].split(':')[1])
+            
+            # Validate hour and minute
+            if 0 <= hour <= 23 and 0 <= minute <= 59:
+                formatted_time = datetime.strptime(data['user_preferences'], "%H:%M").time()
+                # .strftime("%H:%M:%S.%f").time()
+                print("---->",formatted_time)
+                user.user_preferences = formatted_time
+            else:
+                return jsonify({"message": "Invalid time format. Hour must be 0-23 and minute must be 0-59"}), 400
+        except (ValueError, IndexError):
+            return jsonify({"message": "Invalid time format. Please use HH:MM format"}), 400
         
     db.session.commit()
     

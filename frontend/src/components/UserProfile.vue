@@ -1,5 +1,10 @@
 <template>
-  <!-- <AdminNavBar v-if="user && user.role == 'admin'" /> -->
+  <div v-if="isAdmin">
+    <AdminNavBar />
+  </div>
+  <div v-else>
+    <UserNavBar />
+  </div>
   
   <div class="profile-container">
     <!-- <AdminNavBar v-if="localStorage.getItem('userRole') == 'admin'" />
@@ -56,6 +61,27 @@
             />
           </div>
           
+          <div v-if="!isAdmin" class="form-group">
+            <label>Alert Preferred Time (24 hour format)</label>
+            <div class="time-container">
+            <label for="hour">Hour</label>
+            <input 
+              type="text" 
+              id="hour"
+              v-model="form.hour" 
+              required
+            />
+            <label for="minute">Minute</label>
+            <input 
+              type="text" 
+              id="minute" 
+              v-model="form.minute" 
+              required
+            />
+          </div>
+
+          </div>
+
           <div class="form-group">
             <label for="qualification">Qualification</label>
             <input 
@@ -88,8 +114,15 @@
 </template>
 
 <script>
+import AdminNavBar from './admin/AdminNavBar.vue'
+import UserNavBar from './UserNavBar.vue'
+
 export default {
   name: 'UserProfile',
+  components: {
+    AdminNavBar,
+    UserNavBar
+  },
   data() {
     return {
       user: {},
@@ -98,10 +131,14 @@ export default {
       updateError: null,
       updateSuccess: false,
       updating: false,
+      isAdmin: false,
       form: {
         fullName: '',
         qualification: '',
-        dob: ''
+        dob: '',
+        user_preferences: '',
+        hour: '',
+        minute: ''
       }
     }
   },
@@ -122,14 +159,21 @@ export default {
   },
   methods: {
     async fetchUserData() {
+      const role = localStorage.getItem('userRole')
+      if (role == 'admin') {
+        this.isAdmin = true
+      }
       try {
         const response = await this.$axios.get('/me')
         this.user = response.data
-        
+        console.log(this.user)
         // Populate form with current data
         this.form.fullName = this.user.full_name
         this.form.qualification = this.user.qualification || ''
         this.form.dob = this.user.dob || ''
+        this.form.user_preferences = this.user.user_preferences || ''
+        this.form.hour = this.user.user_preferences.split(':')[0] || '18'
+        this.form.minute = this.user.user_preferences.split(':')[1] || '00'
       } catch (error) {
         this.error = 'Failed to load profile data'
         console.error(error)
@@ -148,19 +192,20 @@ export default {
       this.updating = true
       this.updateError = null
       this.updateSuccess = false
-      
+      console.log(this.form)
       try {
         await this.$axios.put('/profile', {
           full_name: this.form.fullName,
           qualification: this.form.qualification || null,
-          dob: this.form.dob || null
+          dob: this.form.dob || null,
+          user_preferences: this.form.hour + ':' + this.form.minute || null
         })
         
         // Update local data
         this.user.full_name = this.form.fullName
         this.user.qualification = this.form.qualification
         this.user.dob = this.form.dob
-        
+        this.user.user_preferences = this.form.hour + ':' + this.form.minute
         this.updateSuccess = true
         
         // Hide success message after 3 seconds
@@ -355,4 +400,12 @@ input {
   border-radius: 4px;
   margin-bottom: 1rem;
 }
+
+.time-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+
 </style> 
