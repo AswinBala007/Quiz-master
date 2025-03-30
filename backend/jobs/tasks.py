@@ -9,11 +9,12 @@ import requests
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, date, timezone
 from sqlalchemy import func, and_, desc
 from flask import current_app, render_template
+# from mail_service import send_reminder_mail
 # Database imports
-from models import User, Quiz, QuizAttempt, Score, Chapter, Subject, UserPreference
+from models import User, Quiz, QuizAttempt, Score, Chapter, Subject
 import calendar
 
 @shared_task(ignore_result=True)
@@ -24,6 +25,34 @@ def add(x, y):
 @shared_task(ignore_result=True)
 def sub(x, y):
     return x - y
+#  new task , send email to user @user selected time ./ or a default ime , ie 5pm
+
+
+@shared_task(ignore_result=True)
+def send_conditional_daily_email():
+    # Check conditionif a user has not visited in 24 hours or new quiz created) , how?
+    yesterday = datetime.now(timezone.utc) - timedelta(days=1)
+    users = User.query.filter(User.last_login < yesterday).all()
+    # new_quizzes = Quiz.query.filter(Quiz.date_of_quiz > yesterday).all()
+    # total_quiz = Quiz.query.all().count()
+
+
+    users_to_send_email = []
+    users_mail_name = []
+    for user in users:
+        if user.email:  
+            users_to_send_email.append(user.email)
+            users_mail_name.append(user.full_name)
+
+    # for quiz in new_quizzes:
+    #     if quiz.email:
+    #         users_to_send_email.append(quiz.email)
+    #         users_mail_name.append(quiz.full_name)
+    send_remainder_mail(users_to_send_email)
+    # send_reminder_mail(users_to_send_email, "New Quizzes Available")
+    # for user_email, user_name in zip(users_to_send_email, users_mail_name):
+    #     send_reminder_mail(user_email, user_name)
+
 
 @shared_task(bind=True)
 def export_user_quiz_statistics(self):

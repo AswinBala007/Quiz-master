@@ -1,0 +1,258 @@
+[2025-03-30 13:07:11,513: INFO/MainProcess] Task jobs.tasks.export_user_quiz_statistics[56f34bdf-f976-4174-ba5f-dfcebb529b35] received
+[2025-03-30 13:07:11,744: INFO/ForkPoolWorker-7] Models loaded successfully
+[2025-03-30 13:07:11,791: INFO/ForkPoolWorker-7] Task jobs.tasks.export_user_quiz_statistics[56f34bdf-f976-4174-ba5f-dfcebb529b35] succeeded in 0.20466083399969648s: {'status': 'SUCCESS', 'filename': 'user_quiz_statistics_20250330_130711.csv', 'path': '/Users/aswinbala/Downloads/IITM/IITM-MAD2-Project/backend/exports/user_quiz_statistics_20250330_130711.csv', 'timestamp': '20250330_130711', 'record_count': 2}
+[2025-03-30 13:07:25,226: INFO/MainProcess] Task jobs.tasks.export_quiz_statistics[43bd80d8-5045-4a18-9f62-e8df41fa56b2] received
+[2025-03-30 13:07:25,237: INFO/ForkPoolWorker-7] Models loaded successfully
+[2025-03-30 13:07:25,253: INFO/ForkPoolWorker-7] Task jobs.tasks.export_quiz_statistics[43bd80d8-5045-4a18-9f62-e8df41fa56b2] succeeded in 0.02231137500029945s: {'status': 'SUCCESS', 'filename': 'quiz_statistics_20250330_130725.csv', 'path': '/Users/aswinbala/Downloads/IITM/IITM-MAD2-Project/backend/exports/quiz_statistics_20250330_130725.csv', 'timestamp': '20250330_130725', 'record_count': 1}
+[2025-03-30 13:09:08,683: INFO/MainProcess] Task jobs.tasks.export_user_quiz_attempts[3ed40d1d-1964-4ad5-a9db-4d7f0ff5b3f2] received
+[2025-03-30 13:09:08,747: INFO/ForkPoolWorker-7] Models loaded successfully
+[2025-03-30 13:09:08,760: INFO/ForkPoolWorker-7] Task jobs.tasks.export_user_quiz_attempts[3ed40d1d-1964-4ad5-a9db-4d7f0ff5b3f2] succeeded in 0.050632291000056284s: {'status': 'ERROR', 'error': '(sqlite3.OperationalError) no such column: user.is_active
+[SQL: SELECT user.id AS user_id, user.email AS user_email, user.password AS user_password, user.full_name AS user_full_name, user.qualification AS user_qualification, user.dob AS user_dob, user.role AS user_role, user.created_at AS user_created_at, user.last_login AS user_last_login, user.is_active AS user_is_active, user.reminder_hour AS user_reminder_hour 
+FROM user 
+WHERE user.id = ?]
+[parameters: (2,)]
+(Background on this error at: https://sqlalche.me/e/14/e3q8)'}
+[2025-03-30 13:09:29,824: INFO/MainProcess] Task jobs.tasks.export_user_quiz_attempts[33a1c9f9-e345-448f-b91b-91fbc5408da5] received
+[2025-03-30 13:09:29,864: INFO/ForkPoolWorker-7] Models loaded successfully
+[2025-03-30 13:09:29,871: INFO/ForkPoolWorker-7] Task jobs.tasks.export_user_quiz_attempts[33a1c9f9-e345-448f-b91b-91fbc5408da5] succeeded in 0.03728395799998907s: {'status': 'ERROR', 'error': '(sqlite3.OperationalError) no such column: user.is_active
+[SQL: SELECT user.id AS user_id, user.email AS user_email, user.password AS user_password, user.full_name AS user_full_name, user.qualification AS user_qualification, user.dob AS user_dob, user.role AS user_role, user.created_at AS user_created_at, user.last_login AS user_last_login, user.is_active AS user_is_active, user.reminder_hour AS user_reminder_hour 
+FROM user 
+WHERE user.id = ?]
+[parameters: (2,)]
+(Background on this error at: https://sqlalche.me/e/14/e3q8)'}
+[2025-03-30 15:23:58,348: ERROR/MainProcess] Received unregistered task of type 'jobs.tasks.send_monthly_activity_report'.
+The message has been ignored and discarded.
+
+Did you remember to import the module containing this task?
+Or maybe you're using relative imports?
+
+Please see
+http://docs.celeryq.org/en/latest/internals/protocol.html
+for more information.
+
+The full contents of the message body was:
+b'[[], {}, {"callbacks": null, "errbacks": null, "chain": null, "chord": null}]' (77b)
+
+Thw full contents of the message headers:
+{'lang': 'py', 'task': 'jobs.tasks.send_monthly_activity_report', 'id': '756a3deb-b856-43f7-bf75-b63c527aa09e', 'shadow': None, 'eta': None, 'expires': None, 'group': None, 'group_index': None, 'retries': 0, 'timelimit': [None, None], 'root_id': '756a3deb-b856-43f7-bf75-b63c527aa09e', 'parent_id': None, 'argsrepr': '()', 'kwargsrepr': '{}', 'origin': 'gen97151@Aswins-MacBook-Air-2.local', 'ignore_result': False}
+
+The delivery info for this task is:
+{'exchange': '', 'routing_key': 'celery'}
+Traceback (most recent call last):
+  File "/Users/aswinbala/opt/anaconda3/lib/python3.9/site-packages/celery/worker/consumer/consumer.py", line 591, in on_task_received
+    strategy = strategies[type_]
+KeyError: 'jobs.tasks.send_monthly_activity_report'
+[2025-03-30 17:09:28,517: INFO/MainProcess] Task jobs.tasks.export_user_quiz_attempts[c92948a2-36bc-4ce8-bb06-8b2107958129] received
+[2025-03-30 17:09:28,819: INFO/ForkPoolWorker-7] Models loaded successfully
+[2025-03-30 17:09:28,855: INFO/ForkPoolWorker-7] Task jobs.tasks.export_user_quiz_attempts[c92948a2-36bc-4ce8-bb06-8b2107958129] succeeded in 0.1806264579990966s: {'status': 'ERROR', 'error': '(sqlite3.OperationalError) no such column: user.is_active
+[SQL: SELECT user.id AS user_id, user.email AS user_email, user.password AS user_password, user.full_name AS user_full_name, user.qualification AS user_qualification, user.dob AS user_dob, user.role AS user_role, user.created_at AS user_created_at, user.last_login AS user_last_login, user.is_active AS user_is_active, user.reminder_hour AS user_reminder_hour 
+FROM user 
+WHERE user.id = ?]
+[parameters: (2,)]
+(Background on this error at: https://sqlalche.me/e/14/e3q8)'}
+[2025-03-30 17:09:52,817: INFO/MainProcess] Task jobs.tasks.export_user_quiz_attempts[b56b4c36-5dcd-4502-8321-82fa5b28d2dc] received
+[2025-03-30 17:09:52,911: INFO/ForkPoolWorker-7] Models loaded successfully
+[2025-03-30 17:09:52,930: INFO/ForkPoolWorker-7] Task jobs.tasks.export_user_quiz_attempts[b56b4c36-5dcd-4502-8321-82fa5b28d2dc] succeeded in 0.07364775000132795s: {'status': 'ERROR', 'error': '(sqlite3.OperationalError) no such column: user.is_active
+[SQL: SELECT user.id AS user_id, user.email AS user_email, user.password AS user_password, user.full_name AS user_full_name, user.qualification AS user_qualification, user.dob AS user_dob, user.role AS user_role, user.created_at AS user_created_at, user.last_login AS user_last_login, user.is_active AS user_is_active, user.reminder_hour AS user_reminder_hour 
+FROM user 
+WHERE user.id = ?]
+[parameters: (2,)]
+(Background on this error at: https://sqlalche.me/e/14/e3q8)'}
+[2025-03-30 18:09:00,068: ERROR/MainProcess] Received unregistered task of type 'jobs.tasks.send_conditional_daily_email'.
+The message has been ignored and discarded.
+
+Did you remember to import the module containing this task?
+Or maybe you're using relative imports?
+
+Please see
+http://docs.celeryq.org/en/latest/internals/protocol.html
+for more information.
+
+The full contents of the message body was:
+b'[[], {}, {"callbacks": null, "errbacks": null, "chain": null, "chord": null}]' (77b)
+
+Thw full contents of the message headers:
+{'lang': 'py', 'task': 'jobs.tasks.send_conditional_daily_email', 'id': 'b2b28fb7-89f8-445a-ae04-a04b628442f5', 'shadow': None, 'eta': None, 'expires': '2025-03-30T18:24:00.025532+05:30', 'group': None, 'group_index': None, 'retries': 0, 'timelimit': [None, None], 'root_id': 'b2b28fb7-89f8-445a-ae04-a04b628442f5', 'parent_id': None, 'argsrepr': '()', 'kwargsrepr': '{}', 'origin': 'gen9014@Aswins-MacBook-Air-2.local', 'ignore_result': True}
+
+The delivery info for this task is:
+{'exchange': '', 'routing_key': 'celery'}
+Traceback (most recent call last):
+  File "/Users/aswinbala/opt/anaconda3/lib/python3.9/site-packages/celery/worker/consumer/consumer.py", line 591, in on_task_received
+    strategy = strategies[type_]
+KeyError: 'jobs.tasks.send_conditional_daily_email'
+[2025-03-30 18:10:00,039: ERROR/MainProcess] Received unregistered task of type 'jobs.tasks.send_conditional_daily_email'.
+The message has been ignored and discarded.
+
+Did you remember to import the module containing this task?
+Or maybe you're using relative imports?
+
+Please see
+http://docs.celeryq.org/en/latest/internals/protocol.html
+for more information.
+
+The full contents of the message body was:
+b'[[], {}, {"callbacks": null, "errbacks": null, "chain": null, "chord": null}]' (77b)
+
+Thw full contents of the message headers:
+{'lang': 'py', 'task': 'jobs.tasks.send_conditional_daily_email', 'id': 'd724a92c-adc1-431c-ba44-7d54202f0f53', 'shadow': None, 'eta': None, 'expires': '2025-03-30T18:25:00.022319+05:30', 'group': None, 'group_index': None, 'retries': 0, 'timelimit': [None, None], 'root_id': 'd724a92c-adc1-431c-ba44-7d54202f0f53', 'parent_id': None, 'argsrepr': '()', 'kwargsrepr': '{}', 'origin': 'gen9014@Aswins-MacBook-Air-2.local', 'ignore_result': True}
+
+The delivery info for this task is:
+{'exchange': '', 'routing_key': 'celery'}
+Traceback (most recent call last):
+  File "/Users/aswinbala/opt/anaconda3/lib/python3.9/site-packages/celery/worker/consumer/consumer.py", line 591, in on_task_received
+    strategy = strategies[type_]
+KeyError: 'jobs.tasks.send_conditional_daily_email'
+[2025-03-30 18:11:00,032: ERROR/MainProcess] Received unregistered task of type 'jobs.tasks.send_conditional_daily_email'.
+The message has been ignored and discarded.
+
+Did you remember to import the module containing this task?
+Or maybe you're using relative imports?
+
+Please see
+http://docs.celeryq.org/en/latest/internals/protocol.html
+for more information.
+
+The full contents of the message body was:
+b'[[], {}, {"callbacks": null, "errbacks": null, "chain": null, "chord": null}]' (77b)
+
+Thw full contents of the message headers:
+{'lang': 'py', 'task': 'jobs.tasks.send_conditional_daily_email', 'id': '3c71fc21-4890-4c2e-a237-fd110e3e0426', 'shadow': None, 'eta': None, 'expires': '2025-03-30T18:26:00.018461+05:30', 'group': None, 'group_index': None, 'retries': 0, 'timelimit': [None, None], 'root_id': '3c71fc21-4890-4c2e-a237-fd110e3e0426', 'parent_id': None, 'argsrepr': '()', 'kwargsrepr': '{}', 'origin': 'gen9192@Aswins-MacBook-Air-2.local', 'ignore_result': True}
+
+The delivery info for this task is:
+{'exchange': '', 'routing_key': 'celery'}
+Traceback (most recent call last):
+  File "/Users/aswinbala/opt/anaconda3/lib/python3.9/site-packages/celery/worker/consumer/consumer.py", line 591, in on_task_received
+    strategy = strategies[type_]
+KeyError: 'jobs.tasks.send_conditional_daily_email'
+[2025-03-30 18:12:00,033: ERROR/MainProcess] Received unregistered task of type 'jobs.tasks.send_conditional_daily_email'.
+The message has been ignored and discarded.
+
+Did you remember to import the module containing this task?
+Or maybe you're using relative imports?
+
+Please see
+http://docs.celeryq.org/en/latest/internals/protocol.html
+for more information.
+
+The full contents of the message body was:
+b'[[], {}, {"callbacks": null, "errbacks": null, "chain": null, "chord": null}]' (77b)
+
+Thw full contents of the message headers:
+{'lang': 'py', 'task': 'jobs.tasks.send_conditional_daily_email', 'id': '86ec1a71-e9f6-4f54-aed6-e8e03a5367c4', 'shadow': None, 'eta': None, 'expires': '2025-03-30T18:27:00.011384+05:30', 'group': None, 'group_index': None, 'retries': 0, 'timelimit': [None, None], 'root_id': '86ec1a71-e9f6-4f54-aed6-e8e03a5367c4', 'parent_id': None, 'argsrepr': '()', 'kwargsrepr': '{}', 'origin': 'gen9192@Aswins-MacBook-Air-2.local', 'ignore_result': True}
+
+The delivery info for this task is:
+{'exchange': '', 'routing_key': 'celery'}
+Traceback (most recent call last):
+  File "/Users/aswinbala/opt/anaconda3/lib/python3.9/site-packages/celery/worker/consumer/consumer.py", line 591, in on_task_received
+    strategy = strategies[type_]
+KeyError: 'jobs.tasks.send_conditional_daily_email'
+[2025-03-30 18:14:00,018: ERROR/MainProcess] Received unregistered task of type 'jobs.tasks.send_conditional_daily_email'.
+The message has been ignored and discarded.
+
+Did you remember to import the module containing this task?
+Or maybe you're using relative imports?
+
+Please see
+http://docs.celeryq.org/en/latest/internals/protocol.html
+for more information.
+
+The full contents of the message body was:
+b'[[], {}, {"callbacks": null, "errbacks": null, "chain": null, "chord": null}]' (77b)
+
+Thw full contents of the message headers:
+{'lang': 'py', 'task': 'jobs.tasks.send_conditional_daily_email', 'id': '85a890f7-c238-49df-999d-eb0acb16b944', 'shadow': None, 'eta': None, 'expires': '2025-03-30T18:29:00.006460+05:30', 'group': None, 'group_index': None, 'retries': 0, 'timelimit': [None, None], 'root_id': '85a890f7-c238-49df-999d-eb0acb16b944', 'parent_id': None, 'argsrepr': '()', 'kwargsrepr': '{}', 'origin': 'gen9192@Aswins-MacBook-Air-2.local', 'ignore_result': True}
+
+The delivery info for this task is:
+{'exchange': '', 'routing_key': 'celery'}
+Traceback (most recent call last):
+  File "/Users/aswinbala/opt/anaconda3/lib/python3.9/site-packages/celery/worker/consumer/consumer.py", line 591, in on_task_received
+    strategy = strategies[type_]
+KeyError: 'jobs.tasks.send_conditional_daily_email'
+[2025-03-30 18:16:00,034: ERROR/MainProcess] Received unregistered task of type 'jobs.tasks.send_conditional_daily_email'.
+The message has been ignored and discarded.
+
+Did you remember to import the module containing this task?
+Or maybe you're using relative imports?
+
+Please see
+http://docs.celeryq.org/en/latest/internals/protocol.html
+for more information.
+
+The full contents of the message body was:
+b'[[], {}, {"callbacks": null, "errbacks": null, "chain": null, "chord": null}]' (77b)
+
+Thw full contents of the message headers:
+{'lang': 'py', 'task': 'jobs.tasks.send_conditional_daily_email', 'id': '2a8c5444-442a-4544-ad24-4b030b5b121a', 'shadow': None, 'eta': None, 'expires': '2025-03-30T18:31:00.009694+05:30', 'group': None, 'group_index': None, 'retries': 0, 'timelimit': [None, None], 'root_id': '2a8c5444-442a-4544-ad24-4b030b5b121a', 'parent_id': None, 'argsrepr': '()', 'kwargsrepr': '{}', 'origin': 'gen9192@Aswins-MacBook-Air-2.local', 'ignore_result': True}
+
+The delivery info for this task is:
+{'exchange': '', 'routing_key': 'celery'}
+Traceback (most recent call last):
+  File "/Users/aswinbala/opt/anaconda3/lib/python3.9/site-packages/celery/worker/consumer/consumer.py", line 591, in on_task_received
+    strategy = strategies[type_]
+KeyError: 'jobs.tasks.send_conditional_daily_email'
+[2025-03-30 18:21:00,021: ERROR/MainProcess] Received unregistered task of type 'jobs.tasks.send_conditional_daily_email'.
+The message has been ignored and discarded.
+
+Did you remember to import the module containing this task?
+Or maybe you're using relative imports?
+
+Please see
+http://docs.celeryq.org/en/latest/internals/protocol.html
+for more information.
+
+The full contents of the message body was:
+b'[[], {}, {"callbacks": null, "errbacks": null, "chain": null, "chord": null}]' (77b)
+
+Thw full contents of the message headers:
+{'lang': 'py', 'task': 'jobs.tasks.send_conditional_daily_email', 'id': 'f13da6d7-838b-419a-a5cf-1be7f6a603af', 'shadow': None, 'eta': None, 'expires': '2025-03-30T18:36:00.014514+05:30', 'group': None, 'group_index': None, 'retries': 0, 'timelimit': [None, None], 'root_id': 'f13da6d7-838b-419a-a5cf-1be7f6a603af', 'parent_id': None, 'argsrepr': '()', 'kwargsrepr': '{}', 'origin': 'gen9192@Aswins-MacBook-Air-2.local', 'ignore_result': True}
+
+The delivery info for this task is:
+{'exchange': '', 'routing_key': 'celery'}
+Traceback (most recent call last):
+  File "/Users/aswinbala/opt/anaconda3/lib/python3.9/site-packages/celery/worker/consumer/consumer.py", line 591, in on_task_received
+    strategy = strategies[type_]
+KeyError: 'jobs.tasks.send_conditional_daily_email'
+[2025-03-30 18:25:00,612: ERROR/MainProcess] Received unregistered task of type 'jobs.tasks.send_conditional_daily_email'.
+The message has been ignored and discarded.
+
+Did you remember to import the module containing this task?
+Or maybe you're using relative imports?
+
+Please see
+http://docs.celeryq.org/en/latest/internals/protocol.html
+for more information.
+
+The full contents of the message body was:
+b'[[], {}, {"callbacks": null, "errbacks": null, "chain": null, "chord": null}]' (77b)
+
+Thw full contents of the message headers:
+{'lang': 'py', 'task': 'jobs.tasks.send_conditional_daily_email', 'id': 'f06196f8-1e4e-4095-b501-4d92e3c5745e', 'shadow': None, 'eta': None, 'expires': '2025-03-30T18:40:00.480208+05:30', 'group': None, 'group_index': None, 'retries': 0, 'timelimit': [None, None], 'root_id': 'f06196f8-1e4e-4095-b501-4d92e3c5745e', 'parent_id': None, 'argsrepr': '()', 'kwargsrepr': '{}', 'origin': 'gen10250@Aswins-MacBook-Air-2.local', 'ignore_result': True}
+
+The delivery info for this task is:
+{'exchange': '', 'routing_key': 'celery'}
+Traceback (most recent call last):
+  File "/Users/aswinbala/opt/anaconda3/lib/python3.9/site-packages/celery/worker/consumer/consumer.py", line 591, in on_task_received
+    strategy = strategies[type_]
+KeyError: 'jobs.tasks.send_conditional_daily_email'
+[2025-03-30 18:27:00,021: ERROR/MainProcess] Received unregistered task of type 'jobs.tasks.send_conditional_daily_email'.
+The message has been ignored and discarded.
+
+Did you remember to import the module containing this task?
+Or maybe you're using relative imports?
+
+Please see
+http://docs.celeryq.org/en/latest/internals/protocol.html
+for more information.
+
+The full contents of the message body was:
+b'[[], {}, {"callbacks": null, "errbacks": null, "chain": null, "chord": null}]' (77b)
+
+Thw full contents of the message headers:
+{'lang': 'py', 'task': 'jobs.tasks.send_conditional_daily_email', 'id': '90350bdc-d035-4ba9-81f3-c0bc3ea3a553', 'shadow': None, 'eta': None, 'expires': '2025-03-30T18:42:00.008659+05:30', 'group': None, 'group_index': None, 'retries': 0, 'timelimit': [None, None], 'root_id': '90350bdc-d035-4ba9-81f3-c0bc3ea3a553', 'parent_id': None, 'argsrepr': '()', 'kwargsrepr': '{}', 'origin': 'gen10250@Aswins-MacBook-Air-2.local', 'ignore_result': True}
+
+The delivery info for this task is:
+{'exchange': '', 'routing_key': 'celery'}
+Traceback (most recent call last):
+  File "/Users/aswinbala/opt/anaconda3/lib/python3.9/site-packages/celery/worker/consumer/consumer.py", line 591, in on_task_received
+    strategy = strategies[type_]
+KeyError: 'jobs.tasks.send_conditional_daily_email'

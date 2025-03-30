@@ -7,9 +7,7 @@ from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from extensions import cache, db
 from models import Chapter, Question, Quiz, QuizAttempt, Score, Subject, User
-from jobs.tasks import export_user_quiz_attempts
-# Import for testing notifications
-from jobs.tasks import  send_monthly_activity_report
+from jobs.tasks import export_user_quiz_attempts, send_conditional_daily_email, send_monthly_activity_report
 
 user_bp = Blueprint('user', __name__, url_prefix='/user')
 
@@ -529,5 +527,23 @@ def test_monthly_report():
     
     return jsonify({
         'message': 'Monthly report generation started',
+        'task_id': task.id
+    })
+
+@user_bp.route('/test-daily-reminder', methods=['POST'])
+@jwt_required()
+def test_daily_reminder():
+    """Generate and send a test daily reminder to the current user."""
+    user_id = get_jwt_identity()
+
+    # Check if the user is authorized
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    
+    # Start the task to generate and send the report
+    task = send_conditional_daily_email.delay()  
+    return jsonify({
+        'message': 'Daily reminder generation started',
         'task_id': task.id
     })

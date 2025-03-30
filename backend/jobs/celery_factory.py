@@ -20,15 +20,16 @@ def celery_init_app(app: Flask) -> Celery:
         task_serializer="json",
         accept_content=["json"],
         # Configure the schedule for tasks
+
         beat_schedule={
-            # 'send-daily-reminders': {
-            #     'task': 'jobs.tasks.send_daily_reminders',
-            #     'schedule': crontab(minute='*/10'),  # Run every 10 minutes to catch all user preferences
-            #     'options': {'expires': 900}  # Expires after 15 minutes (900 seconds)
-            # },
+            'send-daily-reminders': {
+                'task': 'jobs.tasks.send_conditional_daily_email',
+                'schedule': crontab(hour='*', minute='*'),  # Run every minute to handle all user preferences
+                'options': {'expires': 900}  # Expires after 15 minutes (900 seconds)
+            },
             'send-monthly-reports': {
                 'task': 'jobs.tasks.send_monthly_activity_report',
-                'schedule': crontab(day_of_month='30', hour='15', minute='34'),  # Run at 9:00 AM on the 1st day of each month
+                'schedule': crontab(day_of_month='30', hour='18', minute='11'),  # Run at 9:00 AM on the 1st day of each month
                 'options': {'expires': 3600}  # Expires after 1 hour (3600 seconds)
             }
         }
