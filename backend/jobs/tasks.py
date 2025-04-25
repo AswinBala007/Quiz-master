@@ -33,6 +33,9 @@ def sub(x, y):
 def send_conditional_daily_email():
     # Check conditionif a user has not visited in 24 hours or new quiz created) , how?
     yesterday = datetime.now(timezone.utc) - timedelta(days=1)
+    now = datetime.now()
+    hr = now.hour()
+    min = now.minute()
     users = User.query.filter(User.last_login < yesterday).all()
     # new_quizzes = Quiz.query.filter(Quiz.date_of_quiz > yesterday).all()
     # total_quiz = Quiz.query.all().count()
@@ -49,7 +52,9 @@ def send_conditional_daily_email():
     #     if quiz.email:
     #         users_to_send_email.append(quiz.email)
     #         users_mail_name.append(quiz.full_name)
-        send_reminder_mail(users_to_send_email,users_mail_name)
+        if user.user_preferences:
+            if hr == user.user_preferences.hour() and min==user.user_preferences.minute():
+                send_reminder_mail(user.email,user.full_name)
     # send_reminder_mail(users_to_send_email, "New Quizzes Available")
     # for user_email, user_name in zip(users_to_send_email, users_mail_name):
     #     send_reminder_mail(user_email, user_name)
